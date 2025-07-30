@@ -1,5 +1,6 @@
 from utils.db_connector import fetch_data_from_table
-from reports.CV.services import get_samples_instruments_data, get_vl_samples_backlog_data, get_vl_registered_samples_data
+from reports.CV.services import get_samples_instruments_data, get_vl_samples_backlog_data, get_vl_registered_samples_data, get_vl_samples_tested_data
+from utils.db_connector import get_db_connection, execute_custom_query
 from utils.date_utils import format_week_range
 import os
 import glob
@@ -20,5 +21,8 @@ def generate_weekly_report(tables: list, start_date: str, end_date: str, overwri
     report_data["Samples Instruments"] = get_samples_instruments_data(start_date, end_date)
     report_data["VL Samples Backlog"] = get_vl_samples_backlog_data(start_date, end_date)
     report_data["VL Registered Samples"] = get_vl_registered_samples_data(start_date, end_date)
+
+    # Adicionar a chamada para get_vl_samples_tested_data
+    report_data["VL Samples Tested"] = get_vl_samples_tested_data(start_date, end_date)
 
     return report_data

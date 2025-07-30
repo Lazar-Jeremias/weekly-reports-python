@@ -9,6 +9,7 @@ def populate_cv_report_template(template_path, output_path, data_sets):
     samples_instruments_data = data_sets.get("Samples Instruments", [])
     vl_samples_backlog_data = data_sets.get("VL Samples Backlog", [])
     vl_registered_samples_data = data_sets.get("VL Registered Samples", [])
+    vl_samples_tested_data = data_sets.get("VL Samples Tested", [])
     workbook = load_workbook(template_path)
     sheet = workbook['Capacidade Laboratorial']
 
@@ -121,12 +122,6 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                 cell.border = Border(left=new_left, right=new_right, top=new_top, bottom=new_bottom)
 
 
-
-
-
-
-
-
     # Populate VLSamplesBacklog data
     sheet_backlog = workbook['Amostras não processadas']
     start_row_backlog = 7  # Data starts at row 7
@@ -153,23 +148,60 @@ def populate_cv_report_template(template_path, output_path, data_sets):
         sheet_backlog.cell(row=start_row_backlog + row_idx, column=6, value=row_data.get('>21', 0))
         sheet_backlog.cell(row=start_row_backlog + row_idx, column=7, value=row_data.get('no_data', 0))
 
-    # # Populate VLRegisteredSamples data
-    # sheet_registered = workbook['VLRegisteredSamples']
-    # start_row_registered = 2  # Assuming headers are in row 1
-    # for row_idx, row_data in enumerate(vl_registered_samples_data):
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=1, value=row_data.get('LabName'))
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=2, value=row_data.get('Total'))
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=3, value=row_data.get('Registered'))
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=4, value=row_data.get('Rejected'))
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=5, value=row_data.get('StartDate'))
-    #     sheet_registered.cell(row=start_row_registered + row_idx, column=6, value=row_data.get('EndDate'))
-    #
 
     # Populate weekly range string in 'Amostras não processadas' sheet
+    for merged_cell_range in list(sheet_backlog.merged_cells.ranges):
+        if 'B3' in str(merged_cell_range) or 'C3' in str(merged_cell_range):
+            sheet_backlog.unmerge_cells(str(merged_cell_range))
     sheet_backlog.merge_cells('B3:F3')
     b3_cell = sheet_backlog['B3']
     b3_cell.value = f"Amostras não Processadas (Semana: {week_range_str})"
     b3_cell.alignment = Alignment(vertical='center', horizontal='center')
+
+    # Populate 'Monitoria das Amostras' sheet
+    sheet_monitoria = workbook['Monitoria das Amostras']
+    lab_order_monitoria = [
+        'Cabo Delgado', 'Carmelo', 'Chimoio', 'Dream Beira', 'Dream Maputo',
+        'INS', 'Lichinga', 'Machava', 'Mavalane', 'Nampula',
+        'Ponta Gea', 'Quelimane', 'Tete', 'Xai-Xai'
+    ]
+
+    query_data_columns = [
+        'total_samples',
+        'collection_less_than_7',
+        'collection_btwn_7_and_15',
+        'collection_btwn_16_and_21',
+        'collection_greater_than_21',
+        'collection_no_data',
+        'registration_less_than_7',
+        'registration_btwn_7_and_15',
+        'registration_btwn_16_and_21',
+        'registration_greater_than_21',
+        'testing_less_than_2',
+        'testing_btwn_2_and_7',
+        'testing_greater_than_7',
+        'tat_less_than_7',
+        'tat_btwn_7_and_15',
+        'tat_btwn_16_and_21',
+        'tat_greater_than_21',
+        'tat_average',
+        'no_collection_date',
+        'no_age',
+        'no_sex'
+    ]
+
+    samples_tested_data_map = {row['lab_name']: row for row in vl_samples_tested_data}
+
+    start_row_monitoria = 5
+    start_col_monitoria = 2
+
+    for row_idx, lab_name in enumerate(lab_order_monitoria):
+        row_data = samples_tested_data_map.get(lab_name, {})
+        for col_idx, col_name in enumerate(query_data_columns):
+            cell_value = row_data.get(col_name, 0)
+            if cell_value == '' or cell_value is None:
+                cell_value = 0
+            sheet_monitoria.cell(row=start_row_monitoria + row_idx, column=start_col_monitoria + col_idx, value=cell_value)
 
     # Adjust column widths for better readability
     sheet.column_dimensions[get_column_letter(1)].width = 20  # LabName
