@@ -6,7 +6,7 @@ def get_samples_instruments_data(start_date: datetime, end_date: datetime):
     end_date_str = end_date.strftime('%Y-%m-%d')
 
     query = f"""
-SELECT
+SELECT 
     [LabName],
     [Instrument],
     [VL],

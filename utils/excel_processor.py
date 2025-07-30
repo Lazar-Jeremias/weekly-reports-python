@@ -127,14 +127,31 @@ def populate_cv_report_template(template_path, output_path, data_sets):
 
 
 
-    # # Populate VLSamplesBacklog data
-    # sheet_backlog = workbook['VLSamplesBacklog']
-    # start_row_backlog = 2  # Assuming headers are in row 1
-    # for row_idx, row_data in enumerate(vl_samples_backlog_data):
-    #     sheet_backlog.cell(row=start_row_backlog + row_idx, column=1, value=row_data.get('LabName'))
-    #     sheet_backlog.cell(row=start_row_backlog + row_idx, column=2, value=row_data.get('Total'))
-    #     sheet_backlog.cell(row=start_row_backlog + row_idx, column=3, value=row_data.get('StartDate'))
-    #     sheet_backlog.cell(row=start_row_backlog + row_idx, column=4, value=row_data.get('EndDate'))
+    # Populate VLSamplesBacklog data
+    sheet_backlog = workbook['Amostras não processadas']
+    start_row_backlog = 7  # Data starts at row 7
+    
+    # Get the list of labs in the same order as they appear in the Excel template
+    template_labs = [
+        'Cabo Delgado', 'Carmelo', 'Chimoio', 'Dream Beira', 'Dream Maputo',
+        'INS', 'Lichinga', 'Machava', 'Mavalane', 'Nampula',
+        'Ponta Gea', 'Quelimane', 'Tete', 'Xai-Xai'
+    ]
+    
+    # Create a mapping from lab name to backlog data for quick lookup
+    backlog_data_map = {row['LabName']: row for row in vl_samples_backlog_data}
+    
+    for row_idx, lab_name in enumerate(template_labs):
+        row_data = backlog_data_map.get(lab_name, {})
+        
+        # Fill columns B to G (Total, <7, 7-15, 15-21, >21, no_data)
+        # Replace None/Null values with 0 to ensure formulas work
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=2, value=row_data.get('Total', 0))
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=3, value=row_data.get('<7', 0))
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=4, value=row_data.get('7-15', 0))
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=5, value=row_data.get('15-21', 0))
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=6, value=row_data.get('>21', 0))
+        sheet_backlog.cell(row=start_row_backlog + row_idx, column=7, value=row_data.get('no_data', 0))
 
     # # Populate VLRegisteredSamples data
     # sheet_registered = workbook['VLRegisteredSamples']
@@ -147,6 +164,12 @@ def populate_cv_report_template(template_path, output_path, data_sets):
     #     sheet_registered.cell(row=start_row_registered + row_idx, column=5, value=row_data.get('StartDate'))
     #     sheet_registered.cell(row=start_row_registered + row_idx, column=6, value=row_data.get('EndDate'))
     #
+
+    # Populate weekly range string in 'Amostras não processadas' sheet
+    sheet_backlog.merge_cells('B3:F3')
+    b3_cell = sheet_backlog['B3']
+    b3_cell.value = f"Amostras não Processadas (Semana: {week_range_str})"
+    b3_cell.alignment = Alignment(vertical='center', horizontal='center')
 
     # Adjust column widths for better readability
     sheet.column_dimensions[get_column_letter(1)].width = 20  # LabName
