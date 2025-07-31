@@ -8,9 +8,14 @@ from utils.date_utils import get_previous_week_dates, format_week_range
 def populate_cv_report_template(template_path, output_path, data_sets):
     samples_instruments_data = data_sets.get("Samples Instruments", [])
     vl_samples_backlog_data = data_sets.get("VL Samples Backlog", [])
-    vl_registered_samples_data = data_sets.get("VL Registered Samples", [])
     vl_samples_tested_data = data_sets.get("VL Samples Tested", [])
+    vl_registered_samples_data = data_sets.get("VL Registered Samples", [])
+    vl_tat_by_health_facility_data = data_sets.get("VL TRL by US", [])
+
+    # Carrega o template
     workbook = load_workbook(template_path)
+
+    # Capacidade Laboratorial
     sheet = workbook['Capacidade Laboratorial']
 
     start_date, end_date = get_previous_week_dates()
@@ -199,14 +204,121 @@ def populate_cv_report_template(template_path, output_path, data_sets):
         row_data = samples_tested_data_map.get(lab_name, {})
         for col_idx, col_name in enumerate(query_data_columns):
             cell_value = row_data.get(col_name, 0)
+            sheet_monitoria.cell(row=start_row_monitoria + row_idx, column=start_col_monitoria + col_idx, value=cell_value)
+
+    # Populate VLRegisteredSamples data in 'Monitoria das Amostras' sheet (B26 to L39)
+    registered_query_data_columns = [
+        'registered',
+        'collection_lt_7',
+        'collection_7_15',
+        'collection_16_21',
+        'collection_gt_21',
+        'no_specimen_date',
+        'testing_lt_7',
+        'testing_7_15',
+        'testing_16_21',
+        'testing_gt_21',
+        'no_testing_date'
+    ]
+
+    registered_samples_data_map = {row['lab_name']: row for row in vl_registered_samples_data}
+
+    start_row_registered = 26
+    start_col_registered = 2
+
+    for row_idx, lab_name in enumerate(lab_order_monitoria):
+        row_data = registered_samples_data_map.get(lab_name, {})
+        for col_idx, col_name in enumerate(registered_query_data_columns):
+            cell_value = row_data.get(col_name, 0)
             if cell_value == '' or cell_value is None:
                 cell_value = 0
-            sheet_monitoria.cell(row=start_row_monitoria + row_idx, column=start_col_monitoria + col_idx, value=cell_value)
+            sheet_monitoria.cell(row=start_row_registered + row_idx, column=start_col_registered + col_idx, value=cell_value)
 
     # Adjust column widths for better readability
     sheet.column_dimensions[get_column_letter(1)].width = 20  # LabName
     sheet.column_dimensions[get_column_letter(2)].width = 20  # Instrument
     sheet.column_dimensions[get_column_letter(3)].width = 15  # VL
     sheet.column_dimensions[get_column_letter(4)].width = 15  # EID
+
+
+    # Populate 'TRL por US' sheet
+    sheet_trl_us = workbook['TRL por US']
+    start_row_trl_us = 6
+
+    # Populate weekly range string in 'TRL por US' sheet
+    for merged_cell_range in list(sheet_trl_us.merged_cells.ranges):
+        if 'B2' in str(merged_cell_range) or 'C2' in str(merged_cell_range):
+            sheet_trl_us.unmerge_cells(str(merged_cell_range))
+    sheet_trl_us.merge_cells('B2:H2')
+    b2_cell = sheet_trl_us['B2']
+    b2_cell.value = f"Tempo de Resposta Laboratorial das Amostras por Unidade Sanitária (Semana: {week_range_str})"
+    b2_cell.alignment = Alignment(vertical='center', horizontal='center')
+
+    # Define the columns to be populated from the query result
+    trl_us_columns = [
+        'FacilityNationalCode',
+        'RequestingFacilityCode',
+        'ProvinceName',
+        'DistrictName',
+        'RequestingFacilityName',
+        'TestingFacilityName',
+        'TypeOfTest',
+        'TotalTestedSamples',
+        'rejected',
+        'TestedSamplesWithCollectionDate',
+        'collected_lt_7',
+        'collected_7_15',
+        'collected_16_21',
+        'collected_gt_21',
+        'collected_no_data',
+        'received_lt_7',
+        'received_7_15',
+        'received_16_21',
+        'received_gt_21',
+        'received_no_data',
+        'registered_lt_7',
+        'registered_7_15',
+        'registered_16_21',
+        'registered_gt_21',
+        'registered_no_data',
+        'tested_lt_2',
+        'tested_2_7',
+        'tested_gt_7',
+        'tested_no_data',
+        'total_lt_7',
+        'total_7_15',
+        'total_16_21',
+        'total_gt_21',
+        'total_no_data',
+        'tat'
+    ]
+
+    # Determine the number of rows to fill
+    num_data_rows = len(vl_tat_by_health_facility_data)
+
+    if num_data_rows > 0:
+        # Copy style from row 6 to subsequent rows
+        source_row = sheet_trl_us[start_row_trl_us]
+        for r_idx in range(start_row_trl_us + 1, start_row_trl_us + num_data_rows):
+            for c_idx, cell in enumerate(source_row):
+                new_cell = sheet_trl_us.cell(row=r_idx, column=c_idx + 1)
+                if cell.has_style:
+                    new_cell.font = cell.font.copy()
+                    new_cell.border = cell.border.copy()
+                    new_cell.fill = cell.fill.copy()
+                    new_cell.number_format = cell.number_format
+                    new_cell.alignment = cell.alignment.copy()
+
+        # Populate data
+        for row_idx, row_data in enumerate(vl_tat_by_health_facility_data):
+            for col_idx, col_name in enumerate(trl_us_columns):
+                cell_value = row_data.get(col_name)
+                # Replace None with empty string or 0 based on context
+                if cell_value is None:
+                    if col_name in ['TotalTestedSamples', 'rejected', 'collected_lt_7', 'collected_7_15', 'collected_16_21', 'collected_gt_21', 'collected_no_data', 'received_lt_7', 'received_7_15', 'received_16_21', 'received_gt_21', 'received_no_data', 'registered_lt_7', 'registered_7_15', 'registered_16_21', 'registered_gt_21', 'registered_no_data', 'tested_lt_2', 'tested_2_7', 'tested_gt_7', 'tested_no_data', 'total_lt_7', 'total_7_15', 'total_16_21', 'total_gt_21', 'total_no_data', 'tat']:
+                        cell_value = 0  # Replace with 0 for numeric columns
+                    else:
+                        cell_value = ''  # Replace with empty string for other columns
+                sheet_trl_us.cell(row=start_row_trl_us + row_idx, column=col_idx + 1, value=cell_value)
 
     workbook.save(output_path)

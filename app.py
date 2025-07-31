@@ -2,7 +2,7 @@ import os
 from utils.date_utils import get_previous_week_dates, format_week_range
 from reports.report_generator import generate_weekly_report
 from utils.excel_processor import populate_cv_report_template
-from reports.CV.services import get_samples_instruments_data, get_vl_samples_backlog_data, get_vl_registered_samples_data
+from reports.CV.services import get_samples_instruments_data, get_vl_samples_backlog_data, get_vl_registered_samples_data,get_vl_samples_tested_data, get_vl_tat_by_health_facility_data
 
 if __name__ == '__main__':
     start_date, end_date = get_previous_week_dates()
@@ -11,7 +11,9 @@ if __name__ == '__main__':
     tables_to_fetch = [
         "samples_instruments",
         "vl_samples_backlog",
-        "vl_registered_samples"
+        "vl_registered_samples",
+        "VL Samples Tested",
+        "VL TRL by US"
     ]
 
     # Generate the weekly report, allowing overwrite if needed

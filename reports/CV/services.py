@@ -42,27 +42,6 @@ ORDER BY LabName ASC
 """
     return execute_custom_query(query)
 
-
-def get_vl_registered_samples_data(start_date: datetime, end_date: datetime):
-    start_date_str = start_date.strftime('%Y-%m-%d')
-    end_date_str = end_date.strftime('%Y-%m-%d')
-
-    query = f"""
-SELECT
-       [LabName],
-       [Total],
-       [Registered],
-       [Rejected],
-       [StartDate],
-       [EndDate],
-       [UpdatedAt],
-       [CreatedAt]
-   FROM [ReportData].[dbo].[VLRegisteredSamples]
-WHERE StartDate >= '{start_date_str}'
-AND EndDate <= '{end_date_str}'
-"""
-    return execute_custom_query(query)
-
 # from utils.db_connector import execute_custom_query
 
 def get_vl_samples_tested_data(start_date: datetime, end_date: datetime):
@@ -100,5 +79,81 @@ def get_vl_samples_tested_data(start_date: datetime, end_date: datetime):
     """
     data = execute_custom_query(query)
     print("Dados de VLSamplesTested:", data)
+    return data
+
+def get_vl_registered_samples_data(start_date: datetime, end_date: datetime):
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+
+    query = f"""
+SELECT 
+        [lab_name] 
+       ,[registered] 
+       ,[collection_lt_7] 
+       ,[collection_7_15] 
+       ,[collection_16_21] 
+       ,[collection_gt_21] 
+       ,[no_specimen_date] 
+       ,[testing_lt_7] 
+       ,[testing_7_15] 
+       ,[testing_16_21] 
+       ,[testing_gt_21] 
+       ,[no_testing_date] 
+   FROM [ReportData].[dbo].[VLRegisteredSamples] 
+   WHERE start_date >= '{start_date_str}' AND end_date <= '{end_date_str}' 
+ AND lab_name NOT IN('HM Maputo') 
+ ORDER BY lab_name ASC
+    """
+    data = execute_custom_query(query)
+    # print("Dados de VLRegisteredSamples:", data)
+    return data
+
+def get_vl_tat_by_health_facility_data(start_date: datetime, end_date: datetime):
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+
+    query = f"""
+SELECT 
+ 	    [FacilityNationalCode] 
+       ,[RequestingFacilityCode] 
+       ,[ProvinceName] 
+       ,[DistrictName] 
+       ,[RequestingFacilityName] 
+       ,[TestingFacilityName] 
+       ,[TypeOfTest] 
+       ,[TotalTestedSamples] 
+ 	   ,[rejected] 
+       ,[TestedSamplesWithCollectionDate] 
+       ,[collected_lt_7] 
+       ,[collected_7_15] 
+       ,[collected_16_21] 
+       ,[collected_gt_21] 
+       ,[collected_no_data] 
+       ,[received_lt_7] 
+       ,[received_7_15] 
+       ,[received_16_21] 
+       ,[received_gt_21] 
+       ,[received_no_data] 
+       ,[registered_lt_7] 
+       ,[registered_7_15] 
+       ,[registered_16_21] 
+       ,[registered_gt_21] 
+       ,[registered_no_data] 
+       ,[tested_lt_2] 
+       ,[tested_2_7] 
+       ,[tested_gt_7] 
+       ,[tested_no_data] 
+       ,[total_lt_7] 
+       ,[total_7_15] 
+       ,[total_16_21] 
+       ,[total_gt_21] 
+       ,[total_no_data] 
+       ,[tat] 
+ FROM [ReportData].[dbo].[VLTatByHealthFacility] 
+ WHERE startdate >= '{start_date_str}' AND enddate <= '{end_date_str}' 
+ ORDER BY [TypeOfTest] ASC, [TestingFacilityName] ASC
+    """
+    data = execute_custom_query(query)
+    print("Dados de VLTatByHealthFacility:", data)
     return data
 
