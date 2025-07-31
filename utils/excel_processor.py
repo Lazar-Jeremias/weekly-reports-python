@@ -11,6 +11,7 @@ def populate_cv_report_template(template_path, output_path, data_sets):
     vl_samples_tested_data = data_sets.get("VL Samples Tested", [])
     vl_registered_samples_data = data_sets.get("VL Registered Samples", [])
     vl_tat_by_health_facility_data = data_sets.get("VL TRL by US", [])
+    vl_transport_tat_data = data_sets.get("Tempo de Transporte", [])
 
     # Carrega o template
     workbook = load_workbook(template_path)
@@ -320,5 +321,120 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                     else:
                         cell_value = ''  # Replace with empty string for other columns
                 sheet_trl_us.cell(row=start_row_trl_us + row_idx, column=col_idx + 1, value=cell_value)
+
+    # Populate 'Tempo de Transporte' sheet
+    sheet_transport_tat = workbook['Tempo de Transporte']
+    start_row_transport_tat = 6
+
+    # Populate weekly range string in 'Tempo de Transporte' sheet
+    for merged_cell_range in list(sheet_transport_tat.merged_cells.ranges):
+        if 'B2' in str(merged_cell_range) or 'C2' in str(merged_cell_range):
+            sheet_transport_tat.unmerge_cells(str(merged_cell_range))
+    sheet_transport_tat.merge_cells('B2:H2')
+    b2_cell_transport = sheet_transport_tat['B2']
+    b2_cell_transport.value = f"Tempo de Transporte das Amostras (Semana: {week_range_str})"
+    b2_cell_transport.alignment = Alignment(vertical='center', horizontal='center')
+
+    # Define the columns to be populated from the query result
+    transport_tat_columns = [
+        'FacilityNationalCode',
+        'RequestingFacilityCode',
+        'ProvinceName',
+        'DistrictName',
+        'RequestingFacilityName',
+        'TestingFacilityName',
+        'TypeOfTest',
+        'Total_de_Amostras',
+        'TestedSamplesWithCollectionDate',
+        'collection_to_hub_lt_7',
+        'collection_to_hub_7_15',
+        'collection_to_hub_16_21',
+        'collection_to_hub_gt_21',
+        'collection_to_hub_no_data',
+        'hub_reception_to_registration_lt_7',
+        'hub_reception_to_registration_7_15',
+        'hub_reception_to_registration_16_21',
+        'hub_reception_to_registration_gt_21',
+        'hub_reception_to_registration_no_data',
+        'hub_to_lab_reception_lt_7',
+        'hub_to_lab_reception_7_15',
+        'hub_to_lab_reception_16_21',
+        'hub_to_lab_reception_gt_21',
+        'hub_to_lab_reception_no_data',
+        'lab_reception_to_registration_lt_7',
+        'lab_reception_to_registration_7_15',
+        'lab_reception_to_registration_16_21',
+        'lab_reception_to_registration_gt_21',
+        'lab_reception_to_registration_no_data',
+        'collection_to_lab_reception_lt_7',
+        'collection_to_lab_reception_7_15',
+        'collection_to_lab_reception_16_21',
+        'collection_to_lab_reception_gt_21',
+        'collection_to_lab_reception_no_data'
+    ]
+
+    # Determine the number of rows to fill
+    num_data_rows_transport = len(vl_transport_tat_data)
+
+    if num_data_rows_transport > 0:
+        # Copy style from row 6 to subsequent rows
+        source_row_transport = sheet_transport_tat[start_row_transport_tat]
+        for r_idx in range(start_row_transport_tat + 1, start_row_transport_tat + num_data_rows_transport):
+            for c_idx, cell in enumerate(source_row_transport):
+                new_cell = sheet_transport_tat.cell(row=r_idx, column=c_idx + 1)
+                if cell.has_style:
+                    new_cell.font = cell.font.copy()
+                    new_cell.border = cell.border.copy()
+                    new_cell.fill = cell.fill.copy()
+                    new_cell.number_format = cell.number_format
+                    new_cell.alignment = cell.alignment.copy()
+
+        # Populate data
+        for row_idx, row_data in enumerate(vl_transport_tat_data):
+            for col_idx, col_name in enumerate(transport_tat_columns):
+                cell_value = row_data.get(col_name)
+                # Replace None with empty string or 0 based on context
+                if cell_value is None:
+                    if col_name in [
+                        'FacilityNationalCode',
+                        'RequestingFacilityCode',
+                        'ProvinceName',
+                        'DistrictName',
+                        'RequestingFacilityName',
+                        'TestingFacilityName',
+                        'TypeOfTest',
+                        'TestedSamplesWithCollectionDate',
+                        'Total_de_Amostras',
+                        'TestedSamplesWithCollectionDate',
+                        'collection_to_hub_lt_7',
+                        'collection_to_hub_7_15',
+                        'collection_to_hub_16_21',
+                        'collection_to_hub_gt_21',
+                        'collection_to_hub_no_data',
+                        'hub_reception_to_registration_lt_7',
+                        'hub_reception_to_registration_7_15',
+                        'hub_reception_to_registration_16_21',
+                        'hub_reception_to_registration_gt_21',
+                        'hub_reception_to_registration_no_data',
+                        'hub_to_lab_reception_lt_7',
+                        'hub_to_lab_reception_7_15',
+                        'hub_to_lab_reception_16_21',
+                        'hub_to_lab_reception_gt_21',
+                        'hub_to_lab_reception_no_data',
+                        'lab_reception_to_registration_lt_7',
+                        'lab_reception_to_registration_7_15',
+                        'lab_reception_to_registration_16_21',
+                        'lab_reception_to_registration_gt_21',
+                        'lab_reception_to_registration_no_data',
+                        'collection_to_lab_reception_lt_7',
+                        'collection_to_lab_reception_7_15',
+                        'collection_to_lab_reception_16_21',
+                        'collection_to_lab_reception_gt_21',
+                        'collection_to_lab_reception_no_data'
+                    ]:
+                        cell_value = 0  # Replace with 0 for numeric columns
+                    else:
+                        cell_value = ''  # Replace with empty string for other columns
+                sheet_transport_tat.cell(row=start_row_transport_tat + row_idx, column=col_idx + 1, value=cell_value)
 
     workbook.save(output_path)

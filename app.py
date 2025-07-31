@@ -13,7 +13,8 @@ if __name__ == '__main__':
         "vl_samples_backlog",
         "vl_registered_samples",
         "VL Samples Tested",
-        "VL TRL by US"
+        "VL TRL by US",
+        "Tempo de Transporte"
     ]
 
     # Generate the weekly report, allowing overwrite if needed

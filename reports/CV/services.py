@@ -78,7 +78,7 @@ def get_vl_samples_tested_data(start_date: datetime, end_date: datetime):
          ORDER BY lab_name ASC
     """
     data = execute_custom_query(query)
-    print("Dados de VLSamplesTested:", data)
+    # print("Dados de VLSamplesTested:", data)
     return data
 
 def get_vl_registered_samples_data(start_date: datetime, end_date: datetime):
@@ -113,47 +113,124 @@ def get_vl_tat_by_health_facility_data(start_date: datetime, end_date: datetime)
     end_date_str = end_date.strftime('%Y-%m-%d')
 
     query = f"""
-SELECT 
- 	    [FacilityNationalCode] 
-       ,[RequestingFacilityCode] 
-       ,[ProvinceName] 
-       ,[DistrictName] 
-       ,[RequestingFacilityName] 
-       ,[TestingFacilityName] 
-       ,[TypeOfTest] 
-       ,[TotalTestedSamples] 
- 	   ,[rejected] 
-       ,[TestedSamplesWithCollectionDate] 
-       ,[collected_lt_7] 
-       ,[collected_7_15] 
-       ,[collected_16_21] 
-       ,[collected_gt_21] 
-       ,[collected_no_data] 
-       ,[received_lt_7] 
-       ,[received_7_15] 
-       ,[received_16_21] 
-       ,[received_gt_21] 
-       ,[received_no_data] 
-       ,[registered_lt_7] 
-       ,[registered_7_15] 
-       ,[registered_16_21] 
-       ,[registered_gt_21] 
-       ,[registered_no_data] 
-       ,[tested_lt_2] 
-       ,[tested_2_7] 
-       ,[tested_gt_7] 
-       ,[tested_no_data] 
-       ,[total_lt_7] 
-       ,[total_7_15] 
-       ,[total_16_21] 
-       ,[total_gt_21] 
-       ,[total_no_data] 
-       ,[tat] 
- FROM [ReportData].[dbo].[VLTatByHealthFacility] 
- WHERE startdate >= '{start_date_str}' AND enddate <= '{end_date_str}' 
- ORDER BY [TypeOfTest] ASC, [TestingFacilityName] ASC
+    SELECT 
+            B.[FacilityNationalCode] 
+        ,B.Datim_ID
+        ,[ProvinceName] 
+        ,[DistrictName] 
+        ,[RequestingFacilityName] 
+        ,[TestingFacilityName] 
+        ,[TypeOfTest] 
+        ,[TotalTestedSamples] 
+        ,[rejected] 
+        ,[TestedSamplesWithCollectionDate] 
+        ,[collected_lt_7] 
+        ,[collected_7_15] 
+        ,[collected_16_21] 
+        ,[collected_gt_21] 
+        ,[collected_no_data] 
+        ,[received_lt_7] 
+        ,[received_7_15] 
+        ,[received_16_21] 
+        ,[received_gt_21] 
+        ,[received_no_data] 
+        ,[registered_lt_7] 
+        ,[registered_7_15] 
+        ,[registered_16_21] 
+        ,[registered_gt_21] 
+        ,[registered_no_data] 
+        ,[tested_lt_2] 
+        ,[tested_2_7] 
+        ,[tested_gt_7] 
+        ,[tested_no_data] 
+        ,[total_lt_7] 
+        ,[total_7_15] 
+        ,[total_16_21] 
+        ,[total_gt_21] 
+        ,[total_no_data] 
+        ,[tat] 
+    FROM [ReportData].[dbo].[VLTatByHealthFacility] A
+    LEFT JOIN (
+        SELECT  
+            Datim_ID,
+            Disa_Code,
+            FacilityNationalCode
+        FROM [OpenLDRDict].dbo.[Datim]
+    ) B 
+    ON A.RequestingFacilityCode = B.Disa_Code
+    WHERE startdate >= '{start_date_str}' AND enddate <= '{end_date_str}' 
+    ORDER BY [TypeOfTest] ASC, [TestingFacilityName] ASC
     """
     data = execute_custom_query(query)
-    print("Dados de VLTatByHealthFacility:", data)
+    # print("Dados de VLTatByHealthFacility:", data)
+    return data
+
+def get_vl_transport_tat_data(start_date: datetime, end_date: datetime):
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+
+    query = f"""
+    SELECT 
+         B.[FacilityNationalCode] 
+        ,B.[Datim_ID] 
+        ,[ProvinceName] 
+        ,[DistrictName] 
+        ,[RequestingFacilityName] 
+        ,[TestingFacilityName] 
+        ,[TypeOfTest] 
+        ,[TestedSamplesWithCollectionDate] Total_de_Amostras 
+        ,[TestedSamplesWithCollectionDate] 
+        ,[collection_to_hub_lt_7] 
+        ,[collection_to_hub_7_15] 
+        ,[collection_to_hub_16_21] 
+        ,[collection_to_hub_gt_21] 
+        ,[collection_to_hub_no_data] 
+        ,[hub_reception_to_registration_lt_7] 
+        ,[hub_reception_to_registration_7_15] 
+        ,[hub_reception_to_registration_16_21] 
+        ,[hub_reception_to_registration_gt_21] 
+        ,[hub_reception_to_registration_no_data] 
+        ,[hub_to_lab_reception_lt_7] 
+        ,[hub_to_lab_reception_7_15] 
+        ,[hub_to_lab_reception_16_21] 
+        ,[hub_to_lab_reception_gt_21] 
+        ,[hub_to_lab_reception_no_data] 
+        ,[lab_reception_to_registration_lt_7] 
+        ,[lab_reception_to_registration_7_15] 
+        ,[lab_reception_to_registration_16_21] 
+        ,[lab_reception_to_registration_gt_21] 
+        ,[lab_reception_to_registration_no_data] 
+        ,[lab_registration_to_analysis_lt_7] 
+        ,[lab_registration_to_analysis_7_15] 
+        ,[lab_registration_to_analysis_16_21] 
+        ,[lab_registration_to_analysis_gt_21] 
+        ,[lab_analysis_to_validation_lt_2] 
+        ,[lab_analysis_to_validation_2_7] 
+        ,[lab_analysis_to_validation_gt_7] 
+        ,[lab_analysis_to_validation_no_data] 
+        ,[collection_to_validation_lt_7] 
+        ,[collection_to_validation_7_15] 
+        ,[collection_to_validation_16_21] 
+        ,[collection_to_validation_gt_21] 
+        ,[collection_to_validation_no_data] 
+        ,[collection_to_lab_reception_lt_7] 
+        ,[collection_to_lab_reception_7_15] 
+        ,[collection_to_lab_reception_16_21] 
+        ,[collection_to_lab_reception_gt_21] 
+        ,[collection_to_lab_reception_no_data] 
+    FROM [ReportData].[dbo].[VLTransportTATPerWeek] A
+    LEFT JOIN (
+        SELECT  
+            Datim_ID,
+            Disa_Code,
+            FacilityNationalCode
+        FROM [OpenLDRDict].dbo.[Datim]
+    ) B 
+    ON A.RequestingFacilityCode = B.Disa_Code
+    WHERE startdate >= '{start_date_str}' AND enddate <= '{end_date_str}' 
+    ORDER BY [TypeOfTest] ASC, [TestingFacilityName] ASC 
+    """
+    data = execute_custom_query(query)
+    # print("Dados de VLTransportTATPerWeek:", data)
     return data
 
