@@ -1,14 +1,14 @@
-import os
 from utils.date_utils import get_previous_week_dates, format_week_range
+from datetime import datetime
 from reports.report_generator import generate_weekly_report
-from utils.excel_processor import populate_cv_report_template
 from reports.CV.services import get_samples_instruments_data, get_vl_samples_backlog_data, get_vl_registered_samples_data,get_vl_samples_tested_data, get_vl_tat_by_health_facility_data
 
 if __name__ == '__main__':
     start_date, end_date = get_previous_week_dates()
+    # No change needed, start_date and end_date are already datetime objects
 
-    # Define the tables to fetch data from
-    tables_to_fetch = [
+    # --- Carga Viral Report Generation ---
+    cv_tables_to_fetch = [
         "samples_instruments",
         "vl_samples_backlog",
         "vl_registered_samples",
@@ -17,20 +17,16 @@ if __name__ == '__main__':
         "Tempo de Transporte"
     ]
 
-    # Generate the weekly report, allowing overwrite if needed
-    report_data = generate_weekly_report(tables_to_fetch, start_date, end_date, overwrite=True)
+    cv_output_path = generate_weekly_report("Carga Viral", cv_tables_to_fetch, start_date, end_date, overwrite=True)
+    if cv_output_path:
+        print(f"Carga Viral report generated at: {cv_output_path}")
 
-    if report_data:
-        # Process the report data and populate the Excel template
-        template_path = r"c:\Users\lazar\weekly-reports\reports\CV\template\Template Carga Viral.xlsx"
-        week_start, week_end = get_previous_week_dates()
-        week_range_str = format_week_range(week_start, week_end)
-        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reports', 'CV')
-        output_filename = f"Carga Viral - semana {week_range_str}.xlsx"
-        output_path = os.path.join(output_dir, output_filename)
+    # --- DPI Report Generation ---
+    eid_tables_to_fetch = [
+        "EID Data Table 1", # Replace with actual EID table names
+        "EID Data Table 2"  # Replace with actual EID table names
+    ]
 
-        populate_cv_report_template(
-            template_path,
-            output_path,
-            report_data
-        )
+    eid_output_path = generate_weekly_report("DPI", eid_tables_to_fetch, start_date, end_date, overwrite=True)
+    if eid_output_path:
+        print(f"DPI report generated at: {eid_output_path}")

@@ -435,3 +435,11 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                 sheet_transport_tat.cell(row=start_row_transport_tat + row_idx, column=col_idx + 1, value=cell_value)
 
     workbook.save(output_path)
+
+def populate_eid_report_template(template_path, output_path, data_sets):
+    # This is a placeholder for the EID report population logic.
+    # You will need to implement the actual logic based on the EID report structure.
+    # For now, it just loads and saves the workbook.
+
+    workbook = load_workbook(template_path)
+    workbook.save(output_path)
