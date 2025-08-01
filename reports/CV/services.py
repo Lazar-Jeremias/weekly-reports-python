@@ -6,18 +6,20 @@ def get_samples_instruments_data(start_date: datetime, end_date: datetime):
     end_date_str = end_date.strftime('%Y-%m-%d')
 
     query = f"""
-SELECT 
-    [LabName],
-    [Instrument],
-    [VL],
-    [EID],
-    [StartDate],
-    [EndDate]
-FROM [ReportData].[dbo].[SamplesInstruments]
-WHERE StartDate >= '{start_date_str}'
-AND EndDate <= '{end_date_str}'
-AND Instrument <> 'MPIMA'
-ORDER BY LabName ASC
+    SELECT 
+        B.[LabName],
+        B.[AnalyzerDesc],
+        B.[Capacity],
+        A.[EID],
+        A.[VL]
+    FROM [OpenLDRDict].[dbo].[Analyzers_Capacity] B
+    LEFT JOIN [ReportData].[dbo].[SamplesInstruments] A
+        ON B.LabName = A.LabName
+        AND B.LIMSAnalyzerCode = A.Instrument
+        AND A.StartDate >= '{start_date_str}'
+        AND A.EndDate <= '{end_date_str}'
+        AND A.Instrument <> 'MPIMA'
+    ORDER BY B.LabName ASC, B.AnalyzerDesc ASC
 """
     return execute_custom_query(query)
 

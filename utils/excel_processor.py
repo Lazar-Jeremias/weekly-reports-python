@@ -76,18 +76,22 @@ def populate_cv_report_template(template_path, output_path, data_sets):
             current_lab_name = lab_name
 
         sheet.cell(row=current_row, column=1, value=lab_name) # Lab
-        instrument_cell = sheet.cell(row=current_row, column=2, value=row_data.get('Instrument')) # equipamento
+        instrument_cell = sheet.cell(row=current_row, column=2, value=row_data.get('AnalyzerDesc')) # equipamento
         instrument_cell.font = Font(bold=True)
-        # sheet.cell(row=current_row, column=3, value=row_data.get('Capacidade')) # capacidade
-        vl_value = row_data.get('VL')
+        # capacity_cell = sheet.cell(row=current_row, column=3, value=row_data.get('Capacity')) # capacidade
+        capacity_value = row_data.get('Capacity')
         eid_value = row_data.get('EID')
+        vl_value = row_data.get('VL')
+        
 
-        vl_cell = sheet.cell(row=current_row, column=4, value='' if vl_value == 0 else vl_value) # VL
-        eid_cell = sheet.cell(row=current_row, column=5, value='' if eid_value == 0 else eid_value) # dpi
-
+        capacity_cell = sheet.cell(row=current_row, column=3, value='' if capacity_value == 0 else capacity_value) # capacidade
+        eid_cell = sheet.cell(row=current_row, column=4, value='' if eid_value == 0 else eid_value) # dpi
+        vl_cell = sheet.cell(row=current_row, column=5, value='' if vl_value == 0 else vl_value) # VL
         # Centralize values in VL and EID columns
-        vl_cell.alignment = Alignment(horizontal='center', vertical='center')
+        capacity_cell.alignment = Alignment(horizontal='center', vertical='center')
         eid_cell.alignment = Alignment(horizontal='center', vertical='center')
+        vl_cell.alignment = Alignment(horizontal='center', vertical='center')
+        
 
         # Apply thin borders to all cells in the data area
         for col in range(1, 6):
@@ -96,10 +100,11 @@ def populate_cv_report_template(template_path, output_path, data_sets):
 
         # Fill the last two data columns with #FFF2CC if the cell is empty
         fill_color = PatternFill(start_color='FFF2CC', end_color='FFF2CC', fill_type='solid')
-        if vl_value == 0:
-            vl_cell.fill = fill_color
+        
         if eid_value == 0:
             eid_cell.fill = fill_color
+        if vl_value == 0:
+            vl_cell.fill = fill_color
 
         current_row += 1
 
@@ -396,14 +401,6 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                 # Replace None with empty string or 0 based on context
                 if cell_value is None:
                     if col_name in [
-                        'FacilityNationalCode',
-                        'RequestingFacilityCode',
-                        'ProvinceName',
-                        'DistrictName',
-                        'RequestingFacilityName',
-                        'TestingFacilityName',
-                        'TypeOfTest',
-                        'TestedSamplesWithCollectionDate',
                         'Total_de_Amostras',
                         'TestedSamplesWithCollectionDate',
                         'collection_to_hub_lt_7',
