@@ -263,7 +263,7 @@ def populate_cv_report_template(template_path, output_path, data_sets):
     # Define the columns to be populated from the query result
     trl_us_columns = [
         'FacilityNationalCode',
-        'RequestingFacilityCode',
+        'Datim_ID',
         'ProvinceName',
         'DistrictName',
         'RequestingFacilityName',
@@ -315,16 +315,33 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                     new_cell.number_format = cell.number_format
                     new_cell.alignment = cell.alignment.copy()
 
+        # Define columns where NULL or zero should be treated as empty for TRL por US (A, B, C, D, E, F, G, I, AI)
+        trl_empty_if_null_or_zero_columns = [
+            'FacilityNationalCode',    # Coluna A
+            'Datim_ID',                # Coluna B
+            'ProvinceName',            # Coluna C
+            'DistrictName',            # Coluna D
+            'RequestingFacilityName',  # Coluna E
+            'TestingFacilityName',     # Coluna F
+            'TypeOfTest',              # Coluna G
+            'rejected',                # Coluna I
+            'tat'                      # Coluna AI
+        ]
+
         # Populate data
         for row_idx, row_data in enumerate(vl_tat_by_health_facility_data):
             for col_idx, col_name in enumerate(trl_us_columns):
                 cell_value = row_data.get(col_name)
-                # Replace None with empty string or 0 based on context
-                if cell_value is None:
-                    if col_name in ['TotalTestedSamples', 'rejected', 'collected_lt_7', 'collected_7_15', 'collected_16_21', 'collected_gt_21', 'collected_no_data', 'received_lt_7', 'received_7_15', 'received_16_21', 'received_gt_21', 'received_no_data', 'registered_lt_7', 'registered_7_15', 'registered_16_21', 'registered_gt_21', 'registered_no_data', 'tested_lt_2', 'tested_2_7', 'tested_gt_7', 'tested_no_data', 'total_lt_7', 'total_7_15', 'total_16_21', 'total_gt_21', 'total_no_data', 'tat']:
-                        cell_value = 0  # Replace with 0 for numeric columns
-                    else:
-                        cell_value = ''  # Replace with empty string for other columns
+                
+                # Special treatment for specific columns - NULL or zero becomes empty
+                if col_name in trl_empty_if_null_or_zero_columns:
+                    if cell_value is None or cell_value == 0 or cell_value == '0':
+                        cell_value = ''
+                else:
+                    # For other columns, only NULL becomes empty
+                    if cell_value is None:
+                        cell_value = ''
+                        
                 sheet_trl_us.cell(row=start_row_trl_us + row_idx, column=col_idx + 1, value=cell_value)
 
     # Populate 'Tempo de Transporte' sheet
@@ -343,7 +360,7 @@ def populate_cv_report_template(template_path, output_path, data_sets):
     # Define the columns to be populated from the query result
     transport_tat_columns = [
         'FacilityNationalCode',
-        'RequestingFacilityCode',
+        'Datim_ID',
         'ProvinceName',
         'DistrictName',
         'RequestingFacilityName',
@@ -394,52 +411,31 @@ def populate_cv_report_template(template_path, output_path, data_sets):
                     new_cell.number_format = cell.number_format
                     new_cell.alignment = cell.alignment.copy()
 
+        # Define columns where NULL or zero should be treated as empty for Tempo de Transporte (A, B, C, D, E, F, G)
+        transport_empty_if_null_or_zero_columns = [
+            'FacilityNationalCode',    # Coluna A
+            'Datim_ID',                # Coluna B
+            'ProvinceName',            # Coluna C
+            'DistrictName',            # Coluna D
+            'RequestingFacilityName',  # Coluna E
+            'TestingFacilityName',     # Coluna F
+            'TypeOfTest'               # Coluna G
+        ]
+
         # Populate data
         for row_idx, row_data in enumerate(vl_transport_tat_data):
             for col_idx, col_name in enumerate(transport_tat_columns):
                 cell_value = row_data.get(col_name)
-                # Replace None with empty string or 0 based on context
-                if cell_value is None:
-                    if col_name in [
-                        'Total_de_Amostras',
-                        'TestedSamplesWithCollectionDate',
-                        'collection_to_hub_lt_7',
-                        'collection_to_hub_7_15',
-                        'collection_to_hub_16_21',
-                        'collection_to_hub_gt_21',
-                        'collection_to_hub_no_data',
-                        'hub_reception_to_registration_lt_7',
-                        'hub_reception_to_registration_7_15',
-                        'hub_reception_to_registration_16_21',
-                        'hub_reception_to_registration_gt_21',
-                        'hub_reception_to_registration_no_data',
-                        'hub_to_lab_reception_lt_7',
-                        'hub_to_lab_reception_7_15',
-                        'hub_to_lab_reception_16_21',
-                        'hub_to_lab_reception_gt_21',
-                        'hub_to_lab_reception_no_data',
-                        'lab_reception_to_registration_lt_7',
-                        'lab_reception_to_registration_7_15',
-                        'lab_reception_to_registration_16_21',
-                        'lab_reception_to_registration_gt_21',
-                        'lab_reception_to_registration_no_data',
-                        'collection_to_lab_reception_lt_7',
-                        'collection_to_lab_reception_7_15',
-                        'collection_to_lab_reception_16_21',
-                        'collection_to_lab_reception_gt_21',
-                        'collection_to_lab_reception_no_data'
-                    ]:
-                        cell_value = 0  # Replace with 0 for numeric columns
-                    else:
-                        cell_value = ''  # Replace with empty string for other columns
+                
+                # Special treatment for specific columns - NULL or zero becomes empty
+                if col_name in transport_empty_if_null_or_zero_columns:
+                    if cell_value is None or cell_value == 0 or cell_value == '0':
+                        cell_value = ''
+                else:
+                    # For other columns, only NULL becomes empty
+                    if cell_value is None:
+                        cell_value = ''
+                        
                 sheet_transport_tat.cell(row=start_row_transport_tat + row_idx, column=col_idx + 1, value=cell_value)
 
-    workbook.save(output_path)
-
-def populate_eid_report_template(template_path, output_path, data_sets):
-    # This is a placeholder for the EID report population logic.
-    # You will need to implement the actual logic based on the EID report structure.
-    # For now, it just loads and saves the workbook.
-
-    workbook = load_workbook(template_path)
     workbook.save(output_path)

@@ -116,7 +116,7 @@ def get_vl_tat_by_health_facility_data(start_date: datetime, end_date: datetime)
 
     query = f"""
     SELECT 
-            B.[FacilityNationalCode] 
+         B.[FacilityNationalCode] 
         ,B.Datim_ID
         ,[ProvinceName] 
         ,[DistrictName] 
