@@ -1,2 +1,5 @@
 openpyxl
 pyodbc
+flask
+schedule
+python-dotenv
